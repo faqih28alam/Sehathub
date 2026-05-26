@@ -138,8 +138,9 @@ model Patient {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  appointments Appointment[]
-  payments     Payment[]
+  appointments  Appointment[]
+  payments      Payment[]
+  prescriptions Prescription[]
 
   @@index([userId])
   @@map("patients")
@@ -164,6 +165,7 @@ model Doctor {
   availability   DoctorAvailability[]
   unavailability DoctorUnavailability[]
   appointments   Appointment[]
+  prescriptions  Prescription[]
 
   @@index([userId])
   @@map("doctors")
@@ -256,7 +258,8 @@ model Appointment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  payment     Payment?
+  payment      Payment?
+  prescription Prescription?
 
   // Prevent double-booking: same doctor cannot have overlapping appointments
   @@index([doctorId, scheduledAt])
@@ -310,6 +313,44 @@ model Invoice {
   issuedAt    DateTime @default(now())
 
   @@map("invoices")
+}
+
+// ─── Prescriptions ────────────────────────────────────────────────────────────
+
+model Prescription {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  doctorId      String
+  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+  notes         String?
+  pdfUrl        String?
+  issuedAt      DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items PrescriptionItem[]
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medication     String
+  dosage         String       // e.g. "500mg"
+  frequency      String       // e.g. "3x sehari"
+  duration       String       // e.g. "5 hari"
+  notes          String?
+
+  @@index([prescriptionId])
+  @@map("prescription_items")
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────

@@ -11,6 +11,7 @@ import { DoctorsModule } from './doctors/doctors.module';
 import { ServicesModule } from './services/services.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { PaymentsModule } from './payments/payments.module';
+import { PrescriptionsModule } from './prescriptions/prescriptions.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -26,6 +27,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     ServicesModule,
     AppointmentsModule,
     PaymentsModule,
+    PrescriptionsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
