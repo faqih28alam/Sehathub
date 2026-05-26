@@ -25,15 +25,20 @@ export class PaymentsService {
     private config: ConfigService,
     private servicesService: ServicesService,
   ) {
-    this.stripe = new StripeLib(this.config.get<string>('STRIPE_SECRET_KEY', ''), {
-      apiVersion: '2026-04-22.dahlia',
-    });
+    // Only initialize gateways when keys are present (safe for local dev without payment keys)
+    const stripeKey = this.config.get<string>('STRIPE_SECRET_KEY', '');
+    if (stripeKey) {
+      this.stripe = new StripeLib(stripeKey, { apiVersion: '2026-04-22.dahlia' });
+    }
 
-    this.midtransSnap = new MidtransClient.Snap({
-      isProduction: this.config.get('NODE_ENV') === 'production',
-      serverKey: this.config.get<string>('MIDTRANS_SERVER_KEY', ''),
-      clientKey: this.config.get<string>('MIDTRANS_CLIENT_KEY', ''),
-    });
+    const midtransServerKey = this.config.get<string>('MIDTRANS_SERVER_KEY', '');
+    if (midtransServerKey) {
+      this.midtransSnap = new MidtransClient.Snap({
+        isProduction: this.config.get('NODE_ENV') === 'production',
+        serverKey: midtransServerKey,
+        clientKey: this.config.get<string>('MIDTRANS_CLIENT_KEY', ''),
+      });
+    }
   }
 
   private async getAppointmentAndPrice(appointmentId: string, promoCode?: string) {
@@ -65,6 +70,7 @@ export class PaymentsService {
   }
 
   async initiateMidtrans(dto: CreatePaymentDto) {
+    if (!this.midtransSnap) throw new BadRequestException('Midtrans is not configured');
     const { appointment, amountIDR, promoCodeId } = await this.getAppointmentAndPrice(
       dto.appointmentId,
       dto.promoCode,
@@ -103,6 +109,7 @@ export class PaymentsService {
   }
 
   async initiateStripe(dto: CreatePaymentDto) {
+    if (!this.stripe) throw new BadRequestException('Stripe is not configured');
     const { appointment, amountIDR, promoCodeId } = await this.getAppointmentAndPrice(
       dto.appointmentId,
       dto.promoCode,
