@@ -25,9 +25,9 @@ interface LoginResponse extends AuthTokens {
 }
 
 function roleDashboard(role: string) {
-  if (role === "SUPER_ADMIN" || role === "ADMIN") return "/admin";
-  if (role === "DOCTOR") return "/doctor";
-  return "/patient";
+  if (role === "SUPER_ADMIN" || role === "ADMIN") return "/admin/dashboard";
+  if (role === "DOCTOR") return "/doctor/dashboard";
+  return "/patient/dashboard";
 }
 
 export function useLogin() {
