@@ -1,0 +1,23 @@
+{
+  "name": "sehathub",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "workspaces": ["apps/*", "packages/*", "workers/*"],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "db:push": "pnpm --filter @sehathub/db db:push",
+    "db:migrate": "pnpm --filter @sehathub/db db:migrate",
+    "db:generate": "pnpm --filter @sehathub/db db:generate",
+    "db:studio": "pnpm --filter @sehathub/db db:studio",
+    "db:seed": "pnpm --filter @sehathub/db db:seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "prettier": "^3.4.2",
+    "@types/node": "^22.10.5"
+  }
+}
