@@ -1,6 +1,7 @@
 import {
   Controller, Get, Post, Param, Body, Query, UseGuards, Res, StreamableFile,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Response } from 'express';
 import { PrescriptionsService } from './prescriptions.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
@@ -9,17 +10,21 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { JwtPayload } from '@sehathub/types';
 
+@ApiTags('Prescriptions')
+@ApiBearerAuth('access-token')
 @Controller('prescriptions')
 @UseGuards(RolesGuard)
 export class PrescriptionsController {
   constructor(private prescriptions: PrescriptionsService) {}
 
+  @ApiOperation({ summary: 'Issue a new prescription' })
   @Post()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
   create(@Body() dto: CreatePrescriptionDto, @CurrentUser() user: JwtPayload) {
     return this.prescriptions.create(dto, user);
   }
 
+  @ApiOperation({ summary: 'List prescriptions (filterable, paginated)' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
   findAll(
@@ -28,18 +33,21 @@ export class PrescriptionsController {
     return this.prescriptions.findAll(query);
   }
 
+  @ApiOperation({ summary: 'Get prescription by ID' })
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
   findOne(@Param('id') id: string) {
     return this.prescriptions.findOne(id);
   }
 
+  @ApiOperation({ summary: 'Get all prescriptions for a patient' })
   @Get('patient/:patientId')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
   findByPatient(@Param('patientId') patientId: string) {
     return this.prescriptions.findByPatient(patientId);
   }
 
+  @ApiOperation({ summary: 'Download prescription as PDF' })
   @Get(':id/pdf')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
   async downloadPdf(

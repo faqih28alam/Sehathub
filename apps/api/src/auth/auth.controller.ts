@@ -8,6 +8,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
@@ -28,11 +29,13 @@ import type { AuthTokens } from '@sehathub/types';
 const REFRESH_COOKIE = 'refresh_token';
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+@ApiTags('Auth')
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Login with email and password' })
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -45,6 +48,7 @@ export class AuthController {
     return { success: true, data: { accessToken: result.tokens.accessToken, user: result.user } };
   }
 
+  @ApiOperation({ summary: 'Register a new patient account' })
   @Public()
   @Post('register')
   async register(
@@ -56,6 +60,8 @@ export class AuthController {
     return { success: true, data: { accessToken: result.tokens.accessToken, user: result.user } };
   }
 
+  @ApiOperation({ summary: 'Refresh access token using httpOnly refresh cookie' })
+  @ApiCookieAuth('refresh_token')
   @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
@@ -68,6 +74,8 @@ export class AuthController {
     return { success: true, data: { accessToken: tokens.accessToken } };
   }
 
+  @ApiOperation({ summary: 'Logout and revoke refresh token' })
+  @ApiCookieAuth('refresh_token')
   @Public()
   @UseGuards(JwtRefreshGuard)
   @Post('logout')
@@ -80,6 +88,7 @@ export class AuthController {
     return { success: true };
   }
 
+  @ApiOperation({ summary: 'Request password reset email' })
   @Public()
   @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -87,6 +96,7 @@ export class AuthController {
     return { success: true, message: 'If that email exists, a reset link has been sent' };
   }
 
+  @ApiOperation({ summary: 'Reset password with one-time token' })
   @Public()
   @Post('reset-password/:token')
   async resetPassword(@Param('token') token: string, @Body() dto: ResetPasswordDto) {
@@ -94,6 +104,8 @@ export class AuthController {
     return { success: true, message: 'Password reset successfully' };
   }
 
+  @ApiOperation({ summary: 'Invite a doctor by email (Admin only)' })
+  @ApiBearerAuth('access-token')
   @Post('invite')
   @Roles('SUPER_ADMIN', 'ADMIN')
   @UseGuards(RolesGuard)
@@ -102,6 +114,7 @@ export class AuthController {
     return { success: true, message: 'Invite sent' };
   }
 
+  @ApiOperation({ summary: 'Accept doctor invite and set password' })
   @Public()
   @Post('accept-invite/:token')
   async acceptInvite(
@@ -114,6 +127,8 @@ export class AuthController {
     return { success: true, data: { accessToken: result.tokens.accessToken, user: result.user } };
   }
 
+  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiBearerAuth('access-token')
   @Get('me')
   me(@CurrentUser() user: User) {
     return { success: true, data: user };
