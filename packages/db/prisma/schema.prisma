@@ -9,6 +9,8 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
 enum Role {
   SUPER_ADMIN
   ADMIN
@@ -16,10 +18,49 @@ enum Role {
   PATIENT
 }
 
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum AppointmentType {
+  IN_PERSON
+  TELECONSULT
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  MIDTRANS
+  STRIPE
+  CASH
+  BANK_TRANSFER
+}
+
+enum ServiceCategory {
+  GENERAL_CONSULTATION
+  EMERGENCY
+  PRESCRIPTION
+  LAB_TEST
+  SPECIALIST
+  OTHER
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
 model User {
   id           String  @id @default(cuid())
   email        String  @unique
-  passwordHash String? // nullable: doctor invite sets password later via accept-invite
+  passwordHash String?
   role         Role    @default(PATIENT)
   name         String
   phone        String?
@@ -31,6 +72,8 @@ model User {
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
   inviteTokens        InviteToken[]
+  doctor              Doctor?
+  patient             Patient?
 
   @@map("users")
 }
@@ -41,7 +84,7 @@ model RefreshToken {
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
-  revokedAt DateTime? // null = still valid; set when rotated or on logout
+  revokedAt DateTime?
 
   createdAt DateTime @default(now())
 
@@ -55,7 +98,7 @@ model PasswordResetToken {
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
-  usedAt    DateTime? // null = unused; set on redemption (single-use enforcement)
+  usedAt    DateTime?
 
   createdAt DateTime @default(now())
 
@@ -69,10 +112,221 @@ model InviteToken {
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt  DateTime
-  acceptedAt DateTime? // null = pending
+  acceptedAt DateTime?
 
   createdAt DateTime @default(now())
 
   @@index([userId])
   @@map("invite_tokens")
+}
+
+// ─── Patient ──────────────────────────────────────────────────────────────────
+
+model Patient {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nationality String?
+  passportId  String?
+  dateOfBirth DateTime?
+  address     String?
+  // Admin-managed fields
+  notes       String?
+  tags        String[] // e.g. ["expat", "vip", "follow-up"]
+  medicalHistoryNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+  payments     Payment[]
+
+  @@index([userId])
+  @@map("patients")
+}
+
+// ─── Doctor ───────────────────────────────────────────────────────────────────
+
+model Doctor {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialization String?
+  bio            String?
+  licenseNumber  String?
+  yearsOfExperience Int  @default(0)
+  consultationFeeIDR Int? // override per-doctor; falls back to service price
+  isAcceptingPatients Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  availability   DoctorAvailability[]
+  unavailability DoctorUnavailability[]
+  appointments   Appointment[]
+
+  @@index([userId])
+  @@map("doctors")
+}
+
+// Weekly recurring schedule (e.g. Monday 09:00–17:00)
+model DoctorAvailability {
+  id         String @id @default(cuid())
+  doctorId   String
+  doctor     Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek  Int    // 0=Sun, 1=Mon ... 6=Sat
+  startTime  String // "09:00"
+  endTime    String // "17:00"
+  slotDurationMinutes Int @default(30)
+
+  @@unique([doctorId, dayOfWeek])
+  @@index([doctorId])
+  @@map("doctor_availability")
+}
+
+// One-off blocked dates
+model DoctorUnavailability {
+  id       String   @id @default(cuid())
+  doctorId String
+  doctor   Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  date     DateTime @db.Date
+  reason   String?
+
+  @@unique([doctorId, date])
+  @@index([doctorId])
+  @@map("doctor_unavailability")
+}
+
+// ─── Services ─────────────────────────────────────────────────────────────────
+
+model Service {
+  id               String          @id @default(cuid())
+  name             String
+  description      String?
+  category         ServiceCategory @default(GENERAL_CONSULTATION)
+  durationMinutes  Int             @default(30)
+  priceIDR         Int             // in rupiah
+  priceUSD         Float?
+  isActive         Boolean         @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@map("services")
+}
+
+model PromoCode {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  discountPercent Int?     // percentage off
+  discountIDR     Int?     // fixed amount off in IDR
+  maxUses         Int?
+  usedCount       Int      @default(0)
+  expiresAt       DateTime?
+  isActive        Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  payments Payment[]
+
+  @@map("promo_codes")
+}
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+
+model Appointment {
+  id                 String            @id @default(cuid())
+  patientId          String
+  patient            Patient           @relation(fields: [patientId], references: [id])
+  doctorId           String
+  doctor             Doctor            @relation(fields: [doctorId], references: [id])
+  serviceId          String
+  service            Service           @relation(fields: [serviceId], references: [id])
+  scheduledAt        DateTime
+  endsAt             DateTime
+  status             AppointmentStatus @default(PENDING)
+  type               AppointmentType   @default(IN_PERSON)
+  consultationNotes  String?
+  cancellationReason String?
+  reminderSent24h    Boolean           @default(false)
+  reminderSent1h     Boolean           @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment     Payment?
+
+  // Prevent double-booking: same doctor cannot have overlapping appointments
+  @@index([doctorId, scheduledAt])
+  @@index([patientId])
+  @@index([status])
+  @@map("appointments")
+}
+
+// ─── Payments ─────────────────────────────────────────────────────────────────
+
+model Payment {
+  id              String        @id @default(cuid())
+  appointmentId   String        @unique
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id])
+  patientId       String
+  patient         Patient       @relation(fields: [patientId], references: [id])
+  promoCodeId     String?
+  promoCode       PromoCode?    @relation(fields: [promoCodeId], references: [id])
+
+  amountIDR       Int
+  amountUSD       Float?
+  currency        String        @default("IDR")
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+
+  // Gateway references
+  gatewayOrderId  String?       @unique
+  gatewayPaymentId String?
+  gatewayResponse Json?
+
+  paidAt      DateTime?
+  refundedAt  DateTime?
+  notes       String?   // admin notes for manual payments
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoice Invoice?
+
+  @@index([patientId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Invoice {
+  id          String   @id @default(cuid())
+  paymentId   String   @unique
+  payment     Payment  @relation(fields: [paymentId], references: [id])
+  invoiceNumber String @unique // e.g. INV-2026-0001
+  pdfUrl      String?
+  issuedAt    DateTime @default(now())
+
+  @@map("invoices")
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String  @id @default(cuid())
+  actorId    String  // userId who performed the action
+  action     String  // e.g. "patient.create", "appointment.cancel"
+  entityType String  // "Patient", "Appointment", etc.
+  entityId   String
+  before     Json?
+  after      Json?
+  ipAddress  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
 }

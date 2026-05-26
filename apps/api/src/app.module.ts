@@ -6,6 +6,11 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
+import { PatientsModule } from './patients/patients.module';
+import { DoctorsModule } from './doctors/doctors.module';
+import { ServicesModule } from './services/services.module';
+import { AppointmentsModule } from './appointments/appointments.module';
+import { PaymentsModule } from './payments/payments.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -16,9 +21,13 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     UsersModule,
     AuthModule,
     EmailModule,
+    PatientsModule,
+    DoctorsModule,
+    ServicesModule,
+    AppointmentsModule,
+    PaymentsModule,
   ],
   providers: [
-    // Protect every route by default — use @Public() to opt out
     { provide: APP_GUARD, useClass: JwtAuthGuard },
   ],
 })
