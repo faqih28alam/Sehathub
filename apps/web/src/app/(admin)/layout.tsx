@@ -11,6 +11,7 @@ const NAV = [
   { href: "/admin/doctors", label: "Dokter" },
   { href: "/admin/appointments", label: "Janji Temu" },
   { href: "/admin/services", label: "Layanan" },
+  { href: "/admin/payments", label: "Pembayaran" },
   { href: "/admin/prescriptions", label: "Resep" },
   { href: "/admin/crm", label: "CRM" },
   { href: "/admin/whatsapp", label: "WhatsApp" },
