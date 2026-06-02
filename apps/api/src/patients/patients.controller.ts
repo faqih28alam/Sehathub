@@ -19,35 +19,40 @@ export class PatientsController {
   @ApiOperation({ summary: 'List patients (searchable, paginated)' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  findAll(@Query() query: QueryPatientDto) {
-    return this.patients.findAll(query);
+  async findAll(@Query() query: QueryPatientDto) {
+    const data = await this.patients.findAll(query);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get patient by ID' })
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  findOne(@Param('id') id: string) {
-    return this.patients.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.patients.findOne(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get patient appointment + prescription timeline' })
   @Get(':id/timeline')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  getTimeline(@Param('id') id: string) {
-    return this.patients.getTimeline(id);
+  async getTimeline(@Param('id') id: string) {
+    const data = await this.patients.getTimeline(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Create a new patient record' })
   @Post()
   @Roles('SUPER_ADMIN', 'ADMIN')
-  create(@Body() dto: CreatePatientDto) {
-    return this.patients.create(dto);
+  async create(@Body() dto: CreatePatientDto) {
+    const data = await this.patients.create(dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Update patient record' })
   @Patch(':id')
   @Roles('SUPER_ADMIN', 'ADMIN')
-  update(@Param('id') id: string, @Body() dto: UpdatePatientDto) {
-    return this.patients.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdatePatientDto) {
+    const data = await this.patients.update(id, dto);
+    return { success: true, data };
   }
 }

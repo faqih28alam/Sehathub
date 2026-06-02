@@ -20,31 +20,35 @@ export class PrescriptionsController {
   @ApiOperation({ summary: 'Issue a new prescription' })
   @Post()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  create(@Body() dto: CreatePrescriptionDto, @CurrentUser() user: JwtPayload) {
-    return this.prescriptions.create(dto, user);
+  async create(@Body() dto: CreatePrescriptionDto, @CurrentUser() user: JwtPayload) {
+    const data = await this.prescriptions.create(dto, user);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'List prescriptions (filterable, paginated)' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  findAll(
+  async findAll(
     @Query() query: { patientId?: string; doctorId?: string; page?: string; limit?: string },
   ) {
-    return this.prescriptions.findAll(query);
+    const data = await this.prescriptions.findAll(query);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get prescription by ID' })
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
-  findOne(@Param('id') id: string) {
-    return this.prescriptions.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.prescriptions.findOne(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get all prescriptions for a patient' })
   @Get('patient/:patientId')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
-  findByPatient(@Param('patientId') patientId: string) {
-    return this.prescriptions.findByPatient(patientId);
+  async findByPatient(@Param('patientId') patientId: string) {
+    const data = await this.prescriptions.findByPatient(patientId);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Download prescription as PDF' })

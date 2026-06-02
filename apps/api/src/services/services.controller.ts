@@ -20,46 +20,52 @@ export class ServicesController {
   @ApiQuery({ name: 'active', required: false, example: 'true' })
   @Get()
   @Public()
-  findAll(@Query('active') active?: string) {
-    return this.services.findAll(active === 'true');
+  async findAll(@Query('active') active?: string) {
+    const data = await this.services.findAll(active === 'true');
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get service by ID (public)' })
   @Get(':id')
   @Public()
-  findOne(@Param('id') id: string) {
-    return this.services.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.services.findOne(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Create a new service' })
   @ApiBearerAuth('access-token')
   @Post()
   @Roles('SUPER_ADMIN', 'ADMIN')
-  create(@Body() dto: CreateServiceDto) {
-    return this.services.create(dto);
+  async create(@Body() dto: CreateServiceDto) {
+    const data = await this.services.create(dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Update a service' })
   @ApiBearerAuth('access-token')
   @Patch(':id')
   @Roles('SUPER_ADMIN', 'ADMIN')
-  update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
-    return this.services.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateServiceDto) {
+    const data = await this.services.update(id, dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'List all promo codes' })
   @ApiBearerAuth('access-token')
   @Get('promos/list')
   @Roles('SUPER_ADMIN', 'ADMIN')
-  findAllPromos() {
-    return this.services.findAllPromos();
+  async findAllPromos() {
+    const data = await this.services.findAllPromos();
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Create a promo code' })
   @ApiBearerAuth('access-token')
   @Post('promos')
   @Roles('SUPER_ADMIN', 'ADMIN')
-  createPromo(@Body() dto: CreatePromoCodeDto) {
-    return this.services.createPromo(dto);
+  async createPromo(@Body() dto: CreatePromoCodeDto) {
+    const data = await this.services.createPromo(dto);
+    return { success: true, data };
   }
 }

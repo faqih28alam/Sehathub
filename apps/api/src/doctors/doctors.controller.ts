@@ -20,51 +20,58 @@ export class DoctorsController {
   @ApiOperation({ summary: 'List all doctors' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN')
-  findAll() {
-    return this.doctors.findAll();
+  async findAll() {
+    const data = await this.doctors.findAll();
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get doctor by ID' })
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  findOne(@Param('id') id: string) {
-    return this.doctors.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.doctors.findOne(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Update doctor profile' })
   @Patch(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  update(@Param('id') id: string, @Body() dto: UpdateDoctorDto) {
-    return this.doctors.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateDoctorDto) {
+    const data = await this.doctors.update(id, dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get available time slots for a doctor on a given date' })
   @ApiQuery({ name: 'date', required: true, example: '2026-06-15', description: 'YYYY-MM-DD' })
   @Get(':id/slots')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
-  getSlots(@Param('id') id: string, @Query('date') date: string) {
-    return this.doctors.getAvailableSlots(id, date);
+  async getSlots(@Param('id') id: string, @Query('date') date: string) {
+    const data = await this.doctors.getAvailableSlots(id, date);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Set recurring weekly availability for a doctor' })
   @Post(':id/availability')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  setAvailability(@Param('id') id: string, @Body() dto: AvailabilityDto[]) {
-    return this.doctors.setAvailability(id, dto);
+  async setAvailability(@Param('id') id: string, @Body() dto: AvailabilityDto[]) {
+    const data = await this.doctors.setAvailability(id, dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Block a specific date as unavailable' })
   @Post(':id/unavailability')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  addUnavailability(@Param('id') id: string, @Body() dto: UnavailabilityDto) {
-    return this.doctors.addUnavailability(id, dto);
+  async addUnavailability(@Param('id') id: string, @Body() dto: UnavailabilityDto) {
+    const data = await this.doctors.addUnavailability(id, dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Remove a blocked date' })
   @Delete(':id/unavailability/:uid')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  removeUnavailability(@Param('id') id: string, @Param('uid') uid: string) {
-    return this.doctors.removeUnavailability(id, uid);
+  async removeUnavailability(@Param('id') id: string, @Param('uid') uid: string) {
+    const data = await this.doctors.removeUnavailability(id, uid);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: "Get the authenticated doctor's own profile" })
@@ -72,7 +79,8 @@ export class DoctorsController {
   @Roles('DOCTOR')
   async myProfile(@CurrentUser() user: JwtPayload) {
     const doctor = await this.doctors.findByUserId(user.sub);
-    if (!doctor) return null;
-    return this.doctors.findOne(doctor.id);
+    if (!doctor) return { success: true, data: null };
+    const data = await this.doctors.findOne(doctor.id);
+    return { success: true, data };
   }
 }

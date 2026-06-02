@@ -19,28 +19,32 @@ export class AppointmentsController {
   @ApiOperation({ summary: 'List appointments (filterable, paginated)' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR')
-  findAll(@Query() query: QueryAppointmentDto) {
-    return this.appointments.findAll(query);
+  async findAll(@Query() query: QueryAppointmentDto) {
+    const data = await this.appointments.findAll(query);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Get appointment by ID' })
   @Get(':id')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
-  findOne(@Param('id') id: string) {
-    return this.appointments.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.appointments.findOne(id);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Book a new appointment' })
   @Post()
   @Roles('SUPER_ADMIN', 'ADMIN', 'PATIENT')
-  create(@Body() dto: CreateAppointmentDto) {
-    return this.appointments.create(dto);
+  async create(@Body() dto: CreateAppointmentDto) {
+    const data = await this.appointments.create(dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Update appointment status (confirm, complete, cancel, etc.)' })
   @Patch(':id/status')
   @Roles('SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'PATIENT')
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateAppointmentStatusDto) {
-    return this.appointments.updateStatus(id, dto);
+  async updateStatus(@Param('id') id: string, @Body() dto: UpdateAppointmentStatusDto) {
+    const data = await this.appointments.updateStatus(id, dto);
+    return { success: true, data };
   }
 }

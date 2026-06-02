@@ -23,29 +23,33 @@ export class PaymentsController {
   @ApiOperation({ summary: 'List payments (Admin only)' })
   @Get()
   @Roles('SUPER_ADMIN', 'ADMIN')
-  findAll(@Query() query: { patientId?: string; status?: string; page?: string; limit?: string }) {
-    return this.payments.findAll(query);
+  async findAll(@Query() query: { patientId?: string; status?: string; page?: string; limit?: string }) {
+    const data = await this.payments.findAll(query);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Initiate Midtrans payment (returns Snap token)' })
   @Post('midtrans/charge')
   @Roles('SUPER_ADMIN', 'ADMIN', 'PATIENT')
-  initiateMidtrans(@Body() dto: CreatePaymentDto) {
-    return this.payments.initiateMidtrans(dto);
+  async initiateMidtrans(@Body() dto: CreatePaymentDto) {
+    const data = await this.payments.initiateMidtrans(dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Initiate Stripe payment (returns client_secret)' })
   @Post('stripe/charge')
   @Roles('SUPER_ADMIN', 'ADMIN', 'PATIENT')
-  initiateStripe(@Body() dto: CreatePaymentDto) {
-    return this.payments.initiateStripe(dto);
+  async initiateStripe(@Body() dto: CreatePaymentDto) {
+    const data = await this.payments.initiateStripe(dto);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Record a cash/bank transfer payment (Admin only)' })
   @Post('manual')
   @Roles('SUPER_ADMIN', 'ADMIN')
-  recordManual(@Body() dto: RecordManualPaymentDto, @CurrentUser() user: JwtPayload) {
-    return this.payments.recordManual(dto, user.sub);
+  async recordManual(@Body() dto: RecordManualPaymentDto, @CurrentUser() user: JwtPayload) {
+    const data = await this.payments.recordManual(dto, user.sub);
+    return { success: true, data };
   }
 
   @ApiOperation({ summary: 'Midtrans payment notification webhook (called by Midtrans)' })
