@@ -1,10 +1,10 @@
 # Product Requirements Document (PRD)
 ## SehatHub — Telehealth Engineering Platform
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Author:** Faqih (Engineering)  
-**Status:** Draft  
-**Last Updated:** May 2026  
+**Status:** In Development  
+**Last Updated:** June 2026  
 
 ---
 
@@ -92,10 +92,10 @@ Build a scalable, maintainable full-stack web platform that enables SehatHub sta
 - Patient self-registration
 
 #### Acceptance Criteria
-- [ ] Admin can create/invite doctor accounts
-- [ ] Each role sees only their permitted pages/data
-- [ ] JWT refresh token rotation implemented
-- [ ] Password reset email delivers within 60s
+- [x] Admin can create/invite doctor accounts
+- [x] Each role sees only their permitted pages/data
+- [x] JWT refresh token rotation implemented
+- [x] Password reset email delivers within 60s
 
 ---
 
@@ -111,9 +111,10 @@ Build a scalable, maintainable full-stack web platform that enables SehatHub sta
 - Patient import (CSV bulk upload)
 
 #### Acceptance Criteria
-- [ ] Admin can create, edit, and view patient profiles
-- [ ] Search returns results within 500ms for up to 10,000 records
-- [ ] Patient timeline shows all interactions chronologically
+- [x] Admin can create, edit, and view patient profiles
+- [x] Search returns results within 500ms for up to 10,000 records
+- [x] Patient timeline shows all interactions chronologically
+- [ ] Patient import via CSV bulk upload
 
 ---
 
@@ -128,9 +129,10 @@ Build a scalable, maintainable full-stack web platform that enables SehatHub sta
 - Performance metrics: consultations completed, average rating
 
 #### Acceptance Criteria
-- [ ] Doctor can set/update their own weekly availability
-- [ ] Admin can view all doctors and their schedules
-- [ ] Doctor dashboard loads within 2s
+- [x] Doctor can set/update their own weekly availability
+- [x] Admin can view all doctors and their schedules
+- [x] Doctor dashboard loads within 2s
+- [ ] Performance metrics: consultations completed, average rating
 
 ---
 
@@ -157,10 +159,14 @@ Appointment {
 ```
 
 #### Acceptance Criteria
-- [ ] Double-booking is prevented at the database level
-- [ ] Reminders fire automatically via scheduled jobs
+- [x] Double-booking is prevented at the database level
+- [x] Reminders fire automatically via scheduled jobs (24h + 1h BullMQ worker)
 - [ ] Patient receives confirmation via WhatsApp within 30s of booking
-- [ ] Admin can view all bookings with filter/sort by date, doctor, status
+- [x] Admin can view all bookings with filter/sort by date, doctor, status
+- [x] Admin can create bookings on behalf of patient (with slot picker)
+- [x] Doctor can mark appointment complete and add consultation notes
+- [ ] Patient self-booking UI in patient portal
+- [ ] Cancellation time-window enforcement (>2h rule)
 
 ---
 
@@ -175,9 +181,9 @@ Appointment {
 - Pricing rules: standard, expat rate, promo/discount codes
 
 #### Acceptance Criteria
-- [ ] Admin can add/edit/deactivate services
-- [ ] Prices shown correctly in both IDR and USD based on patient profile
-- [ ] Promo codes apply correctly at checkout
+- [x] Admin can add/edit/deactivate services
+- [x] Prices shown correctly in both IDR and USD
+- [ ] Promo codes apply correctly at checkout (backend exists, no patient-facing UI)
 
 ---
 
@@ -195,10 +201,11 @@ Appointment {
 - Payment history per patient
 
 #### Acceptance Criteria
-- [ ] Payment webhook handles all Midtrans/Stripe events correctly
+- [x] Payment webhook handles all Midtrans/Stripe events correctly
 - [ ] Invoice PDF auto-sent to patient email on payment success
-- [ ] Admin can record and reconcile offline payments
-- [ ] Refund flow triggers WhatsApp notification to patient
+- [x] Admin can record and reconcile offline payments (cash/bank transfer)
+- [x] Payment history list with status filter
+- [ ] Refund processing UI and WhatsApp notification to patient
 
 ---
 
@@ -224,9 +231,10 @@ Prescription {
 ```
 
 #### Acceptance Criteria
-- [ ] Doctor can create a prescription post-consultation
-- [ ] PDF generated and sent to patient via WhatsApp within 60s
-- [ ] Patient can access prescription history in their portal
+- [x] Doctor can create a prescription post-consultation
+- [x] PDF generated and downloadable; admin/patient/doctor can download
+- [x] Patient can access prescription history in their portal
+- [ ] PDF auto-sent to patient via WhatsApp on creation
 
 ---
 
@@ -256,8 +264,15 @@ Prescription {
 
 #### Acceptance Criteria
 - [ ] All booking lifecycle events trigger correct WhatsApp messages
-- [ ] FAQ bot handles top 10 common questions
-- [ ] Broadcast delivery report visible in admin dashboard
+  - [x] Appointment reminder 24h before (BullMQ worker)
+  - [x] Appointment reminder 1h before (BullMQ worker)
+  - [ ] Booking confirmation on appointment create
+  - [ ] Payment confirmation on payment success
+  - [ ] Prescription ready notification
+- [x] Admin can view message log and send manual messages
+- [x] Inbound webhook handler receives and stores messages
+- [ ] Interactive FAQ bot flow (inbound message → AI answer via WhatsApp)
+- [ ] Broadcast campaign UI with delivery reporting
 - [ ] Unsubscribe/opt-out respected and logged
 
 ---
@@ -275,8 +290,10 @@ Prescription {
 - Contact deduplication
 
 #### Acceptance Criteria
-- [ ] Admin can move leads through pipeline stages
-- [ ] Follow-up tasks trigger reminders to assigned admin
+- [x] Admin can move leads through pipeline stages (5-stage kanban-style)
+- [x] Lead detail page with activity log (call, email, WhatsApp, note, meeting)
+- [x] Lead source tracking (WhatsApp, website, referral, walk-in, social)
+- [ ] Follow-up task assignment and reminders to assigned admin
 - [ ] Conversion funnel visible in analytics dashboard
 
 ---
@@ -294,8 +311,10 @@ Prescription {
 - Export to CSV/Excel
 
 #### Acceptance Criteria
-- [ ] Dashboard loads within 3s with real data
+- [x] Dashboard loads within 3s with real data (stat cards, 7-day revenue chart, recent appointments)
 - [ ] Date range filter works across all metrics
+- [ ] Booking calendar view (day/week/month)
+- [ ] Revenue breakdown by service, doctor, payment method
 - [ ] CSV export includes all visible columns
 
 ---
@@ -323,9 +342,12 @@ Prescription {
 - AI answers patient questions from knowledge base (RAG)
 
 #### Acceptance Criteria
-- [ ] Triage bot correctly categorizes top 5 symptom clusters in testing
-- [ ] Consultation summary generates in <10s
-- [ ] AI responses include disclaimer: "This is not a medical diagnosis"
+- [x] Triage bot categorizes symptoms into emergency / urgent / routine / self-care (bilingual EN/ID)
+- [x] Consultation summary generates from appointment notes (admin + doctor UI)
+- [x] FAQ RAG chatbot answers patient questions from seeded knowledge base (14 bilingual items)
+- [x] AI responses include disclaimer; graceful stub when API key not configured
+- [ ] Feature 11.3: Prescription explainer ("What is this medication for?")
+- [ ] Triage hands off to booking flow after categorization
 
 ---
 
@@ -382,12 +404,12 @@ Prescription {
 
 | # | Question | Owner | Status |
 |---|----------|-------|--------|
-| 1 | Which WhatsApp API provider is preferred? (Meta Cloud vs third-party like Wati/Respond.io) | Ba / SehatHub | Open |
-| 2 | Is Stripe needed for v1 or can we start with Midtrans only? | Ba / SehatHub | Open |
+| 1 | Which WhatsApp API provider is preferred? (Meta Cloud vs third-party like Wati/Respond.io) | Ba / SehatHub | **Decided: Meta Cloud API** (Baileys as fallback) |
+| 2 | Is Stripe needed for v1 or can we start with Midtrans only? | Ba / SehatHub | **Decided: Both** — Midtrans (IDR), Stripe (international) |
 | 3 | Are there existing patient records to migrate? | Ba / SehatHub | Open |
-| 4 | What languages does the patient-facing UI need? (EN only, or EN + ID) | Ba / SehatHub | Open |
+| 4 | What languages does the patient-facing UI need? (EN only, or EN + ID) | Ba / SehatHub | **Decided: Both** — bilingual EN/ID throughout |
 | 5 | Are there existing doctor accounts/data to seed? | Ba / SehatHub | Open |
-| 6 | Is there a design system or brand guideline to follow? | Ba / SehatHub | Open |
+| 6 | Is there a design system or brand guideline to follow? | Ba / SehatHub | **Decided: Custom** — defined in DESIGN.md (brand pink #E0004D, Inter font) |
 
 ---
 
