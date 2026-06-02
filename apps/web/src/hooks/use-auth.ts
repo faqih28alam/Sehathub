@@ -13,6 +13,7 @@ import type {
   ForgotPasswordDto,
   ResetPasswordDto,
   AcceptInviteDto,
+  InviteDoctorDto,
 } from "@sehathub/types";
 
 interface ApiResponse<T> {
@@ -106,6 +107,15 @@ export function useAcceptInvite(token: string) {
       Cookies.set("access_token", data.accessToken, { expires: 1 / 96 });
       router.push(roleDashboard(data.user.role));
     },
+  });
+}
+
+export function useInviteDoctor() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: InviteDoctorDto) =>
+      apiClient.post("/auth/invite", dto).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["doctors"] }),
   });
 }
 
