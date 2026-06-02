@@ -14,6 +14,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { PrescriptionsModule } from './prescriptions/prescriptions.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { CrmModule } from './crm/crm.module';
+import { WhatsAppModule } from './whatsapp/whatsapp.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
@@ -32,6 +33,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
     PrescriptionsModule,
     AnalyticsModule,
     CrmModule,
+    WhatsAppModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

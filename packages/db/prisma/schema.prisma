@@ -353,6 +353,28 @@ model PrescriptionItem {
   @@map("prescription_items")
 }
 
+// ─── WhatsApp ─────────────────────────────────────────────────────────────────
+
+model WhatsAppMessage {
+  id            String  @id @default(cuid())
+  direction     String  // "INBOUND" | "OUTBOUND"
+  to            String? // recipient phone (outbound)
+  from          String? // sender phone (inbound)
+  body          String
+  type          String  @default("text") // "text" | "template"
+  templateName  String?
+  status        String  @default("sent") // "sent" | "delivered" | "read" | "failed"
+  waMessageId   String? @unique // Meta's message_id
+  appointmentId String? // populated for reminder messages
+
+  createdAt DateTime @default(now())
+
+  @@index([direction])
+  @@index([to])
+  @@index([appointmentId])
+  @@map("whatsapp_messages")
+}
+
 // ─── CRM & Leads ─────────────────────────────────────────────────────────────
 
 enum LeadStatus {
