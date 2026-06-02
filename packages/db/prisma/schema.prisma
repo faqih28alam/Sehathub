@@ -353,6 +353,22 @@ model PrescriptionItem {
   @@map("prescription_items")
 }
 
+// ─── AI / FAQ ─────────────────────────────────────────────────────────────────
+
+model FaqItem {
+  id       String  @id @default(cuid())
+  question String
+  answer   String
+  category String  @default("general") // e.g. "general", "booking", "payment", "health"
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@map("faq_items")
+}
+
 // ─── WhatsApp ─────────────────────────────────────────────────────────────────
 
 model WhatsAppMessage {

@@ -8,6 +8,8 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/patient/dashboard", label: "Dashboard" },
   { href: "/patient/prescriptions", label: "Resep Saya" },
+  { href: "/patient/triage", label: "Cek Gejala (AI)" },
+  { href: "/patient/faq", label: "Tanya Klinik (AI)" },
 ];
 
 export default function PatientLayout({ children }: { children: React.ReactNode }) {
