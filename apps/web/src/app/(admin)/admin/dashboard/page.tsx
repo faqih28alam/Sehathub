@@ -141,6 +141,7 @@ export default function AdminDashboard() {
               { href: "/admin/doctors", label: "Manajemen Dokter" },
               { href: "/admin/services", label: "Kelola Layanan" },
               { href: "/admin/prescriptions", label: "Daftar Resep" },
+              { href: "/admin/crm", label: "CRM Lead Pipeline" },
             ].map((link) => (
               <Link
                 key={link.href}

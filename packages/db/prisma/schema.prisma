@@ -353,6 +353,60 @@ model PrescriptionItem {
   @@map("prescription_items")
 }
 
+// ─── CRM & Leads ─────────────────────────────────────────────────────────────
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WALK_IN
+  WHATSAPP
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  OTHER
+}
+
+model Lead {
+  id                 String     @id @default(cuid())
+  name               String
+  email              String?
+  phone              String?
+  source             LeadSource @default(OTHER)
+  status             LeadStatus @default(NEW)
+  notes              String?
+  assignedToId       String?    // userId of admin/doctor who owns this lead
+  convertedPatientId String?    @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  activities CrmActivity[]
+
+  @@index([status])
+  @@index([assignedToId])
+  @@map("leads")
+}
+
+model CrmActivity {
+  id      String @id @default(cuid())
+  leadId  String
+  lead    Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  actorId String // userId who performed this activity
+  type    String // "call", "email", "whatsapp", "note", "meeting"
+  notes   String
+
+  createdAt DateTime @default(now())
+
+  @@index([leadId])
+  @@map("crm_activities")
+}
+
 // ─── Audit Log ────────────────────────────────────────────────────────────────
 
 model AuditLog {
